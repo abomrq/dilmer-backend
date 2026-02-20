@@ -115,10 +115,21 @@ app.get('/api/grades/:studentId', async (req, res) => {
 });
 
 // UPGRADED: FETCH EVERYTHING FOR TEACHER DASHBOARD
+// NEW: DELETE ALL GRADES FOR A STUDENT
+app.delete('/api/grades/:studentId', async (req, res) => {
+    try {
+        await pool.query(`DELETE FROM notlar WHERE ogrenci_id = $1`, [req.params.studentId]);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: "Notlar silinemedi." });
+    }
+});
+
+// UPGRADED: FETCH EVERYTHING FOR TEACHER DASHBOARD (Now includes student_id)
 app.get('/api/teacher/all-grades', async (req, res) => {
     try {
         const result = await pool.query(`
-            SELECT ogrenciler.ad_soyad, notlar.bolum, notlar.dogru, notlar.yanlis, notlar.yanlis_sorular 
+            SELECT ogrenciler.id AS student_id, ogrenciler.ad_soyad, notlar.bolum, notlar.dogru, notlar.yanlis, notlar.yanlis_sorular 
             FROM notlar 
             JOIN ogrenciler ON notlar.ogrenci_id = ogrenciler.id
             ORDER BY ogrenciler.ad_soyad, notlar.bolum
